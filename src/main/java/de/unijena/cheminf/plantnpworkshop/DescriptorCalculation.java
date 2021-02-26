@@ -35,63 +35,83 @@ import org.openscience.cdk.io.iterator.IteratingSDFReader;
 import org.openscience.cdk.qsar.DescriptorValue;
 import org.openscience.cdk.qsar.descriptors.molecular.ALOGPDescriptor;
 import org.openscience.cdk.qsar.descriptors.molecular.PetitjeanNumberDescriptor;
+import org.openscience.cdk.qsar.descriptors.molecular.RuleOfFiveDescriptor;
+import org.openscience.cdk.qsar.descriptors.molecular.ZagrebIndexDescriptor;
 import org.openscience.cdk.qsar.result.DoubleArrayResult;
 import org.openscience.cdk.qsar.result.DoubleResult;
-import org.openscience.cdk.smiles.SmiFlavor;
-import org.openscience.cdk.smiles.SmilesGenerator;
+import org.openscience.cdk.qsar.result.IntegerResult;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.Objects;
 
 /**
+ * Demo class for calculating selected descriptors using CDK.
  *
+ * @author Jonas Schaub
  */
 public class DescriptorCalculation {
     /**
+     * COCONUT subset molecules are loaded from SD file and their ALogP, Petitjean number, Zagreb index, and Lipinski Rule of 5
+     * violation values calculated and printed to console.
      *
-     * @param args
+     * @param args the command line arguments (none required)
      */
     public static void main(String[] args) throws FileNotFoundException, CDKException {
+
+        //loading SD file from resources
         ClassLoader tmpClassLoader = DescriptorCalculation.class.getClassLoader();
         File tmpSDFile = new File(tmpClassLoader.getResource("COCONUTset-10.sdf").getFile());
         IChemObjectBuilder tmpBuilder = DefaultChemObjectBuilder.getInstance();
         IteratingSDFReader tmpReader = new IteratingSDFReader(new FileInputStream(tmpSDFile), tmpBuilder, true);
-        Aromaticity tmpAromaticity = new Aromaticity(ElectronDonation.cdk(), Cycles.or(Cycles.all(), Cycles.cdkAromaticSet()));
-        ALOGPDescriptor tmpALogPDescriptor = new ALOGPDescriptor();
-        tmpALogPDescriptor.initialise(tmpBuilder);
-        PetitjeanNumberDescriptor tmpPetitjeanNumberDescriptor = new PetitjeanNumberDescriptor();
-        tmpPetitjeanNumberDescriptor.initialise(tmpBuilder);
-        String tmpCOCONUTID;
-        String tmpName;
-        IAtomContainer tmpMolecule;
+
+        //iterating molecules in file
         while(tmpReader.hasNext()) {
-            tmpMolecule = tmpReader.next();
-            if (Objects.isNull(tmpMolecule)) {
-                break;
-            }
-            tmpCOCONUTID = tmpMolecule.getProperty("COCONUT_ID");
-            tmpName = tmpMolecule.getProperty("Name");
+            IAtomContainer tmpMolecule = tmpReader.next();
+            //reading attributes stored in SD, they are added as properties to the atom container automatically
+            String tmpCOCONUTID = tmpMolecule.getProperty("COCONUT_ID");
+            String tmpName = tmpMolecule.getProperty("Name");
             System.out.println("\n" + tmpName + " (" + tmpCOCONUTID + ")");
-            //for alogp calculation, Hs must be explicit and aromaticity detected
+
+            //Petitjean number calculation
+            PetitjeanNumberDescriptor tmpPetitjeanNumberDescriptor = new PetitjeanNumberDescriptor();
+            tmpPetitjeanNumberDescriptor.initialise(tmpBuilder);
+            DescriptorValue tmpPetitjeanNumberValue = tmpPetitjeanNumberDescriptor.calculate(tmpMolecule);
+            DoubleResult tmpPetitjeanNumberResult = (DoubleResult) tmpPetitjeanNumberValue.getValue();
+            System.out.println("\t" + tmpPetitjeanNumberValue.getNames()[0] + ": " + String.format("%,.2f", tmpPetitjeanNumberResult.doubleValue()));
+
+            //Zagreb index calculation
+            ZagrebIndexDescriptor tmpZagrebIndexDescriptor = new ZagrebIndexDescriptor();
+            tmpZagrebIndexDescriptor.initialise(tmpBuilder);
+            DescriptorValue tmpZagrebIndexValue = tmpZagrebIndexDescriptor.calculate(tmpMolecule);
+            DoubleResult tmpZagrebIndexResult = (DoubleResult) tmpZagrebIndexValue.getValue();
+            System.out.println("\t" + tmpZagrebIndexValue.getNames()[0] + ": " + String.format("%,.2f", tmpZagrebIndexResult.doubleValue()));
+
+            //Lipinski Rule of 5 failures calculation
+            //TODO: needs aromaticity check?
+            RuleOfFiveDescriptor tmpRuleOfFiveDescriptor = new RuleOfFiveDescriptor();
+            tmpRuleOfFiveDescriptor.initialise(tmpBuilder);
+            DescriptorValue tmpRuleOfFiveValue = tmpRuleOfFiveDescriptor.calculate(tmpMolecule);
+            IntegerResult tmpRuleOfFiveResult = (IntegerResult) tmpRuleOfFiveValue.getValue();
+            System.out.println("\t" + tmpRuleOfFiveValue.getNames()[0] + ": " + tmpRuleOfFiveResult.intValue());
+
+            //for ALogP calculation, Hs must be explicit and aromaticity detected
             AtomContainerManipulator.convertImplicitToExplicitHydrogens(tmpMolecule);
             AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(tmpMolecule);
+            //aromaticity model is constructed from electron donation model and cycle finder
+            Aromaticity tmpAromaticity = new Aromaticity(ElectronDonation.cdk(), Cycles.or(Cycles.all(), Cycles.cdkAromaticSet()));
             tmpAromaticity.apply(tmpMolecule);
-            //System.out.println((new SmilesGenerator(SmiFlavor.Unique | SmiFlavor.UseAromaticSymbols)).create(tmpMolecule));
             //calculates 3 values, ALogP - Ghose-Crippen LogKow, ALogP2, amr - molar refractivity
+            ALOGPDescriptor tmpALogPDescriptor = new ALOGPDescriptor();
+            tmpALogPDescriptor.initialise(tmpBuilder);
             //result type is an array of doubles
-            DescriptorValue tmpALogPDescriptorResults = tmpALogPDescriptor.calculate(tmpMolecule);
-            String[] tmpALogPDescriptorNames = tmpALogPDescriptorResults.getNames();
-            DoubleArrayResult tmpALogPDescriptorResultsValues = (DoubleArrayResult) tmpALogPDescriptorResults.getValue();
-            for (int i = 0; i < tmpALogPDescriptorNames.length; i++) {
-                System.out.println("\t" + tmpALogPDescriptorNames[i] + ": " + String.format("%,.2f", tmpALogPDescriptorResultsValues.get(i)));
+            DescriptorValue tmpALogPValue = tmpALogPDescriptor.calculate(tmpMolecule);
+            String[] tmpALogPNames = tmpALogPValue.getNames();
+            DoubleArrayResult tmpALogPResults = (DoubleArrayResult) tmpALogPValue.getValue();
+            for (int i = 0; i < tmpALogPNames.length; i++) {
+                System.out.println("\t" + tmpALogPNames[i] + ": " + String.format("%,.2f", tmpALogPResults.get(i)));
             }
-            DescriptorValue tmpPetitjeanNumberDescriptorResult = tmpPetitjeanNumberDescriptor.calculate(tmpMolecule);
-            DoubleResult tmpPetitjeanNumberDescriptorResultValue = (DoubleResult) tmpPetitjeanNumberDescriptorResult.getValue();
-            System.out.println("\t" + tmpPetitjeanNumberDescriptorResult.getNames()[0] + ": " + String.format("%,.2f", tmpPetitjeanNumberDescriptorResultValue.doubleValue()));
-            //https://github.com/mSorok/COCONUT/blob/master/src/main/java/de/unijena/cheminf/npopensourcecollector/services/MolecularFeaturesComputationService.java
         }
     }
 }
