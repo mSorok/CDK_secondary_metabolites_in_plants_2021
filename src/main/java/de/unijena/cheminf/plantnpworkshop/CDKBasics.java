@@ -1,4 +1,4 @@
-package plantnpworkshop;
+package de.unijena.cheminf.plantnpworkshop;
 
 import java.io.File;
 import java.io.FileInputStream;
