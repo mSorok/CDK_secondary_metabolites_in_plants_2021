@@ -28,6 +28,7 @@ import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.aromaticity.Aromaticity;
 import org.openscience.cdk.aromaticity.ElectronDonation;
 import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.fingerprint.CircularFingerprinter;
 import org.openscience.cdk.fingerprint.IBitFingerprint;
 import org.openscience.cdk.fingerprint.PubchemFingerprinter;
 import org.openscience.cdk.graph.Cycles;
@@ -76,12 +77,20 @@ public class FingerprintCalculation {
             //PubChem fingerprint calculation (881 bits)
             PubchemFingerprinter tmpPubchemFingerprinter = new PubchemFingerprinter(tmpBuilder);
             IBitFingerprint tmpPubchemFingerprint = tmpPubchemFingerprinter.getBitFingerprint(tmpMolecule);
-            //cardinality() returns the number of bits set to true in the fingerprint.
-            System.out.println(tmpPubchemFingerprint.cardinality());
+            //cardinality() returns the number of positive bits in the fingerprint.
+            System.out.println("\t" + tmpPubchemFingerprint.cardinality());
             //prints indices of the positive bits
-            System.out.println(tmpPubchemFingerprint.asBitSet().toString());
+            System.out.println("\t" + tmpPubchemFingerprint.asBitSet().toString());
 
-            //TODO: next up, ECFP (preprocessing needed similar to PubChem FP?)
+            //Circular fingerprints: for generating fingerprints that are functionally equivalent to ECFP-2/4/6 and FCFP-2/4/6 fingerprints
+            //Default constructor: uses the ECFP6 type.
+            CircularFingerprinter tmpECFPrinter = new CircularFingerprinter();
+            //aromaticity detection and atom typing is done internally
+            //Implicit vs. explicit hydrogens are handled, i.e. it doesn't matter whether the incoming molecule is hydrogen suppressed or not.
+            //Calculates the circular fingerprint for the given IAtomContainer, and folds the result into a single bitset (see getSize()).
+            IBitFingerprint tmpECFPrint = tmpECFPrinter.getBitFingerprint(tmpMolecule);
+            System.out.println("\t" + tmpECFPrint.cardinality());
+            System.out.println("\t" + tmpECFPrint.asBitSet().toString());
         }
     }
 
