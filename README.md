@@ -5,7 +5,7 @@ Dates:
 
 Authors: Maria Sorokina, Aziz Yirik, Jonas Schaub
 
-Link to slides: https://docs.google.com/presentation/d/1Kuk21WA_pnkWJoXeqguC5gAXT25hk1CJ5iD5xMHNXeI/edit?usp=sharing
+Link to slides: http://bit.ly/3bVgZys
 
 How to use: 
 Pieces of code provided here use only CDK 
