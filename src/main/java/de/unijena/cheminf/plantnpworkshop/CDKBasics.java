@@ -52,9 +52,6 @@ public class CDKBasics {
 		name = ac.getProperty("Name").toString();
 		COCONUT_ID = ac.getProperty("COCONUT_ID").toString();
 
-		System.out.println("------------------------------");
-		System.out.println("COCONUT ID and molecule name: "+COCONUT_ID+" "+name);
-
 		//Depicting IAtomContainers. User can change depiction settings.
 		depiction.withAtomColors().withCarbonSymbols().withSize(1000, 1000).withZoom(20).depict(ac).writeTo(path+COCONUT_ID+" "+name+".png");
 
@@ -62,6 +59,8 @@ public class CDKBasics {
 		uniqueSMILES = sgUnique.create(ac);
 		absoluteSMILES = sgAbsolute.create(ac);
 			
+		System.out.println("------------------------------");
+		System.out.println("COCONUT ID and molecule name: "+COCONUT_ID+" "+name);
 		System.out.println(".......");
 		System.out.println("Unique SMILES: "+uniqueSMILES);
 		System.out.println();
