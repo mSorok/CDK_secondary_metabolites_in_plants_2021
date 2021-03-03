@@ -55,6 +55,9 @@ public class FingerprintCalculation {
     /**
      * COCONUT subset molecules are loaded from SD file and their PubChem and Extended Connectivity fingerprints
      * calculated and reported on console.
+     * All available fingerprints can be found here:
+     * <a href="http://cdk.github.io/cdk/latest/docs/api/org/openscience/cdk/fingerprint/IFingerprinter.html">http://cdk.github.io/cdk/latest/docs/api/org/openscience/cdk/fingerprint/IFingerprinter.html</a>
+     * (All Known Implementing Classes)
      *
      * @param args the command line arguments (none required)
      */

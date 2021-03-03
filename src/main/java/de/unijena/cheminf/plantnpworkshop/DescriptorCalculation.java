@@ -54,8 +54,11 @@ import java.io.FileNotFoundException;
 public class DescriptorCalculation {
 
     /**
-     * COCONUT subset molecules are loaded from SD file and their ALogP, Petitjean number, Zagreb index, and Lipinski Rule of 5
-     * violation values calculated and printed to console.
+     * COCONUT subset molecules are loaded from SD file and their ALogP, Petitjean number, Zagreb index, and Lipinski
+     * Rule of 5 violation values calculated and printed to console.
+     * All available descriptors can be found here:
+     * <a href="http://cdk.github.io/cdk/latest/docs/api/org/openscience/cdk/qsar/IDescriptor.html">http://cdk.github.io/cdk/latest/docs/api/org/openscience/cdk/qsar/IDescriptor.html</a>
+     * (All Known Implementing Classes)
      *
      * @param args the command line arguments (none required)
      */
