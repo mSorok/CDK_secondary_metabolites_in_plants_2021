@@ -15,15 +15,15 @@ import org.openscience.cdk.smiles.SmilesGenerator;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 public class CDKBasics {
-	/**
+	 /*
      * 10 randomly selected COCONUT molecules are loaded from the SDF,
      * 'COCONUTset-10.sdf' and their properties are printed.
      *
      * These molecule depictions are saved on users' desktops.
      *
-     **/
+     */
 
-	/**
+	 /*
 	 * Path is set to the Desktop directory.
 	 */
 
@@ -37,10 +37,10 @@ public class CDKBasics {
 
 	    //Constructors: DepictionGenerator, SmilesGenerator.
 	    DepictionGenerator depiction = new DepictionGenerator();
-		SmilesGenerator sg = new SmilesGenerator(SmiFlavor.Unique);
-
+		SmilesGenerator sgUnique = new SmilesGenerator(SmiFlavor.Unique);
+		SmilesGenerator sgAbsolute = new SmilesGenerator(SmiFlavor.Absolute);
 		//Defining String variables.
-		String COCONUT_ID, name, SMILES;
+		String COCONUT_ID, name, uniqueSMILES, absoluteSMILES;
 
 		//Iterating molecules
 		while (reader.hasNext()) {
@@ -59,10 +59,13 @@ public class CDKBasics {
 			depiction.withAtomColors().withCarbonSymbols().withSize(1000, 1000).withZoom(20).depict(ac).writeTo(path+COCONUT_ID+" "+name+".png");
 
 			//Generating SMILES of IAtomContainer
-			SMILES = sg.create(ac);
-
+			uniqueSMILES = sgUnique.create(ac);
+			absoluteSMILES = sgAbsolute.create(ac);
+			
 			System.out.println(".......");
-			System.out.println("SMILES: "+SMILES);
+			System.out.println("Unique SMILES: "+uniqueSMILES);
+			System.out.println();
+			System.out.println("Absolute SMILES: "+absoluteSMILES);
 			System.out.println(".......");
 
 			//Calculating the molecular weight.
