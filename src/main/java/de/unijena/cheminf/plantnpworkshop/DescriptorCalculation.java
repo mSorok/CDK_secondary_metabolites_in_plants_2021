@@ -48,17 +48,17 @@ import java.io.FileNotFoundException;
 
 /**
  * Demo class for calculating selected descriptors using CDK.
+ * All available descriptors can be found here:
+ * <a href="http://cdk.github.io/cdk/latest/docs/api/org/openscience/cdk/qsar/IDescriptor.html"
+ * >http://cdk.github.io/cdk/latest/docs/api/org/openscience/cdk/qsar/IDescriptor.html</a>
+ * (All Known Implementing Classes)
  *
  * @author Jonas Schaub
  */
 public class DescriptorCalculation {
-
     /**
      * COCONUT subset molecules are loaded from SD file and their ALogP, Petitjean number, Zagreb index, and Lipinski
      * Rule of 5 violation values calculated and printed to console.
-     * All available descriptors can be found here:
-     * <a href="http://cdk.github.io/cdk/latest/docs/api/org/openscience/cdk/qsar/IDescriptor.html">http://cdk.github.io/cdk/latest/docs/api/org/openscience/cdk/qsar/IDescriptor.html</a>
-     * (All Known Implementing Classes)
      *
      * @param args the command line arguments (none required)
      */
@@ -81,6 +81,7 @@ public class DescriptorCalculation {
 
             //*Petitjean number calculation*
             PetitjeanNumberDescriptor tmpPetitjeanNumberDescriptor = new PetitjeanNumberDescriptor();
+            //initialise the descriptor with the specified chem object builder
             tmpPetitjeanNumberDescriptor.initialise(tmpBuilder);
             DescriptorValue tmpPetitjeanNumberValue = tmpPetitjeanNumberDescriptor.calculate(tmpMolecule);
             //DescriptorValue.getValue() returns an object implementing IDescriptorResult in general
@@ -110,8 +111,8 @@ public class DescriptorCalculation {
             //*ALogP calculation*
             //preprocessing required: Hs must be explicit and aromaticity detected
             AtomContainerManipulator.convertImplicitToExplicitHydrogens(tmpMolecule);
-            AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(tmpMolecule);
             //(done again because of now explicit Hs)
+            AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(tmpMolecule);
             tmpAromaticity.apply(tmpMolecule);
             ALOGPDescriptor tmpALogPDescriptor = new ALOGPDescriptor();
             tmpALogPDescriptor.initialise(tmpBuilder);
@@ -124,7 +125,6 @@ public class DescriptorCalculation {
             for (int i = 0; i < tmpALogPNames.length; i++) {
                 System.out.println("\t" + tmpALogPNames[i] + ": " + String.format("%,.2f", tmpALogPResults.get(i)));
             }
-
         } //end of while()
     } //end of main()
-}
+} //end of class

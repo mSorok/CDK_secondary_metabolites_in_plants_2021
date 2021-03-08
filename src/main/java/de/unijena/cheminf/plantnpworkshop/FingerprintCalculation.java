@@ -46,18 +46,19 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 /**
- * Demo class for calculating PubChem and EC fingerprints using CDK.
+ * Demo class for calculating PubChem and EC fingerprints and calculating a Tanimoto similarity using CDK.
+ * All available fingerprints can be found here:
+ * <a href="http://cdk.github.io/cdk/latest/docs/api/org/openscience/cdk/fingerprint/IFingerprinter.html"
+ * >http://cdk.github.io/cdk/latest/docs/api/org/openscience/cdk/fingerprint/IFingerprinter.html</a>
+ * (All Known Implementing Classes)
  *
  * @author Jonas Schaub
  */
 public class FingerprintCalculation {
-
     /**
      * COCONUT subset molecules are loaded from SD file and their PubChem and Extended Connectivity fingerprints
-     * calculated and reported on console.
-     * All available fingerprints can be found here:
-     * <a href="http://cdk.github.io/cdk/latest/docs/api/org/openscience/cdk/fingerprint/IFingerprinter.html">http://cdk.github.io/cdk/latest/docs/api/org/openscience/cdk/fingerprint/IFingerprinter.html</a>
-     * (All Known Implementing Classes)
+     * calculated and reported on console. Additionally, the Tanimoto similarity of every compound to one of them
+     * (Flower Of Paradise (CNP0218319)) is calculated using both fingerprints.
      *
      * @param args the command line arguments (none required)
      */
@@ -82,9 +83,9 @@ public class FingerprintCalculation {
             //preprocessing required: Hs explicit, atom types configured, aromaticity detected
             SmilesGenerator tmpSmiGen = new SmilesGenerator(SmiFlavor.Unique | SmiFlavor.UseAromaticSymbols);
             System.out.println("\tSMILES representation before preprocessing: " + tmpSmiGen.create(tmpMolecule));
-            //aromaticity model is constructed from electron donation model and cycle finder
             AtomContainerManipulator.convertImplicitToExplicitHydrogens(tmpMolecule);
             AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(tmpMolecule);
+            //aromaticity model is constructed from electron donation model and cycle finder
             Aromaticity tmpAromaticity = new Aromaticity(ElectronDonation.cdk(), Cycles.cdkAromaticSet());
             tmpAromaticity.apply(tmpMolecule);
             System.out.println("\tSMILES representation AFTER preprocessing: " + tmpSmiGen.create(tmpMolecule));
@@ -121,4 +122,4 @@ public class FingerprintCalculation {
             System.out.println("\tTanimoto similarity (using ECFP) to the Flower of Paradise: " + String.format("%,.2f", tmpECFPTanimoto));
         } //end of while()
     } //end of main()
-}
+} //end of class
