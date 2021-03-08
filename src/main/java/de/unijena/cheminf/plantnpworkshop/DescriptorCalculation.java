@@ -48,70 +48,83 @@ import java.io.FileNotFoundException;
 
 /**
  * Demo class for calculating selected descriptors using CDK.
+ * All available descriptors can be found here:
+ * <a href="http://cdk.github.io/cdk/latest/docs/api/org/openscience/cdk/qsar/IDescriptor.html"
+ * >http://cdk.github.io/cdk/latest/docs/api/org/openscience/cdk/qsar/IDescriptor.html</a>
+ * (All Known Implementing Classes)
  *
  * @author Jonas Schaub
  */
 public class DescriptorCalculation {
     /**
-     * COCONUT subset molecules are loaded from SD file and their ALogP, Petitjean number, Zagreb index, and Lipinski Rule of 5
-     * violation values calculated and printed to console.
+     * COCONUT subset molecules are loaded from SD file and their ALogP, Petitjean number, Zagreb index, and Lipinski
+     * Rule of 5 violation values calculated and printed to console.
      *
      * @param args the command line arguments (none required)
      */
     public static void main(String[] args) throws FileNotFoundException, CDKException {
 
-        //loading SD file from resources
-        ClassLoader tmpClassLoader = DescriptorCalculation.class.getClassLoader();
-        File tmpSDFile = new File(tmpClassLoader.getResource("COCONUTset-10.sdf").getFile());
+        //*loading SD file from resources*
+        File tmpSDFile = new File("src/main/resources/COCONUTset-10.sdf");
+        //a factory class to provide implementation independent ICDKObjects, needed for SDF parsing
         IChemObjectBuilder tmpBuilder = DefaultChemObjectBuilder.getInstance();
+        //skip: true -> erroneous entries will be skipped
         IteratingSDFReader tmpReader = new IteratingSDFReader(new FileInputStream(tmpSDFile), tmpBuilder, true);
 
-        //iterating molecules in file
+        //*iterating molecules in file*
         while(tmpReader.hasNext()) {
             IAtomContainer tmpMolecule = tmpReader.next();
-            //reading attributes stored in SD, they are added as properties to the atom container automatically
+            //reading attributes of molecules stored in SDF, they are added as properties to the atom container automatically
             String tmpCOCONUTID = tmpMolecule.getProperty("COCONUT_ID");
             String tmpName = tmpMolecule.getProperty("Name");
             System.out.println("\n" + tmpName + " (" + tmpCOCONUTID + ")");
 
-            //Petitjean number calculation
+            //*Petitjean number calculation*
             PetitjeanNumberDescriptor tmpPetitjeanNumberDescriptor = new PetitjeanNumberDescriptor();
+            //initialise the descriptor with the specified chem object builder
             tmpPetitjeanNumberDescriptor.initialise(tmpBuilder);
             DescriptorValue tmpPetitjeanNumberValue = tmpPetitjeanNumberDescriptor.calculate(tmpMolecule);
+            //DescriptorValue.getValue() returns an object implementing IDescriptorResult in general
             DoubleResult tmpPetitjeanNumberResult = (DoubleResult) tmpPetitjeanNumberValue.getValue();
             System.out.println("\t" + tmpPetitjeanNumberValue.getNames()[0] + ": " + String.format("%,.2f", tmpPetitjeanNumberResult.doubleValue()));
 
-            //Zagreb index calculation
+            //*Zagreb index calculation*
             ZagrebIndexDescriptor tmpZagrebIndexDescriptor = new ZagrebIndexDescriptor();
             tmpZagrebIndexDescriptor.initialise(tmpBuilder);
             DescriptorValue tmpZagrebIndexValue = tmpZagrebIndexDescriptor.calculate(tmpMolecule);
             DoubleResult tmpZagrebIndexResult = (DoubleResult) tmpZagrebIndexValue.getValue();
             System.out.println("\t" + tmpZagrebIndexValue.getNames()[0] + ": " + String.format("%,.2f", tmpZagrebIndexResult.doubleValue()));
 
-            //Lipinski Rule of 5 failures calculation
-            //TODO: needs aromaticity check?
+            //*Lipinski Rule of 5 failures calculation*
+            //preprocessing required: detection of aromaticity
+            //aromaticity model is constructed from electron donation model and cycle finder
+            Aromaticity tmpAromaticity = new Aromaticity(ElectronDonation.cdk(), Cycles.cdkAromaticSet());
+            //for detection of aromaticity, atom types must be set
+            AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(tmpMolecule);
+            tmpAromaticity.apply(tmpMolecule);
             RuleOfFiveDescriptor tmpRuleOfFiveDescriptor = new RuleOfFiveDescriptor();
             tmpRuleOfFiveDescriptor.initialise(tmpBuilder);
             DescriptorValue tmpRuleOfFiveValue = tmpRuleOfFiveDescriptor.calculate(tmpMolecule);
             IntegerResult tmpRuleOfFiveResult = (IntegerResult) tmpRuleOfFiveValue.getValue();
             System.out.println("\t" + tmpRuleOfFiveValue.getNames()[0] + ": " + tmpRuleOfFiveResult.intValue());
 
-            //for ALogP calculation, Hs must be explicit and aromaticity detected
+            //*ALogP calculation*
+            //preprocessing required: Hs must be explicit and aromaticity detected
             AtomContainerManipulator.convertImplicitToExplicitHydrogens(tmpMolecule);
+            //(done again because of now explicit Hs)
             AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(tmpMolecule);
-            //aromaticity model is constructed from electron donation model and cycle finder
-            Aromaticity tmpAromaticity = new Aromaticity(ElectronDonation.cdk(), Cycles.or(Cycles.all(), Cycles.cdkAromaticSet()));
             tmpAromaticity.apply(tmpMolecule);
-            //calculates 3 values, ALogP - Ghose-Crippen LogKow, ALogP2, amr - molar refractivity
             ALOGPDescriptor tmpALogPDescriptor = new ALOGPDescriptor();
             tmpALogPDescriptor.initialise(tmpBuilder);
-            //result type is an array of doubles
+            //calculates 3 values: ALogP (Ghose-Crippen LogKow), ALogP2, amr (molar refractivity)
             DescriptorValue tmpALogPValue = tmpALogPDescriptor.calculate(tmpMolecule);
             String[] tmpALogPNames = tmpALogPValue.getNames();
+            //result type is an array of 3 doubles
             DoubleArrayResult tmpALogPResults = (DoubleArrayResult) tmpALogPValue.getValue();
+            //iterating the 3 calculated values
             for (int i = 0; i < tmpALogPNames.length; i++) {
                 System.out.println("\t" + tmpALogPNames[i] + ": " + String.format("%,.2f", tmpALogPResults.get(i)));
             }
-        }
-    }
-}
+        } //end of while()
+    } //end of main()
+} //end of class
